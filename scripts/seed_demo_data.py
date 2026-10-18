@@ -9,6 +9,7 @@ from decimal import Decimal
 from datetime import datetime, timezone, timedelta
 from sqlalchemy import select
 
+from app.config import get_settings
 from app.database import AsyncSessionLocal
 from app.features.users.models import User
 from app.features.categories.models import Category
@@ -17,6 +18,14 @@ from app.core.security import hash_password
 
 
 async def seed_data():
+    settings = get_settings()
+    if not settings.DEBUG and "--force" not in sys.argv:
+        print("WARNING: DEBUG is False. This script seeds demo accounts with known passwords.")
+        confirm = input("Type 'yes' to proceed with seeding demo data: ").strip().lower()
+        if confirm != "yes":
+            print("Seeding aborted.")
+            return
+
     async with AsyncSessionLocal() as session:
         # 1. Seed Users if not present
         existing_admin = await session.execute(select(User).where(User.email == "admin@example.com"))

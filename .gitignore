@@ -18,10 +18,18 @@ env/
 .env.*
 !.env.example
 
-# Database
+# Database & Backups
 *.db
 *.sqlite
 *.sqlite3
+*.sql
+*.sql.gz
+backups/
+
+# Certificates & Keys
+*.pem
+*.key
+*.cert
 
 # IDE
 .vscode/

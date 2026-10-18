@@ -19,8 +19,9 @@ class Settings(BaseSettings):
     JWT_ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
 
-    # CSRF
+    # CSRF & Cookies
     CSRF_SECRET: str = "csrf-secret-change-in-production"
+    COOKIE_SECURE: bool = False
 
     # Business rules
     LOW_STOCK_THRESHOLD: int = 10

@@ -10,6 +10,7 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.config import get_settings
 from app.core.security import decode_access_token
 from app.database import get_db
 from app.exceptions import AppException
@@ -18,6 +19,7 @@ from app.features.auth.schemas import LoginRequest, TokenResponse
 from app.logging_config import get_logger
 
 logger = get_logger(__name__)
+settings = get_settings()
 
 _TEMPLATE_DIR = Path(__file__).resolve().parent.parent.parent / "templates"
 templates = Jinja2Templates(directory=str(_TEMPLATE_DIR))
@@ -75,24 +77,25 @@ async def login_submit(
         )
 
     response = RedirectResponse(url="/dashboard", status_code=status.HTTP_303_SEE_OTHER)
-    # Set access token cookie (httponly, samesite=lax, secure=False for dev)
+    max_age_seconds = settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60
+    # Set access token cookie (httponly, samesite=lax, configurable secure for HTTPS)
     response.set_cookie(
         key="access_token",
         value=access_token,
         httponly=True,
         samesite="lax",
-        secure=False,
-        max_age=3600,
+        secure=settings.COOKIE_SECURE,
+        max_age=max_age_seconds,
         path="/",
     )
-    # Set csrf token cookie (readable by JS/client, samesite=lax, secure=False for dev)
+    # Set csrf token cookie (readable by JS/client, samesite=lax, configurable secure for HTTPS)
     response.set_cookie(
         key="csrf_token",
         value=csrf_token,
         httponly=False,
         samesite="lax",
-        secure=False,
-        max_age=3600,
+        secure=settings.COOKIE_SECURE,
+        max_age=max_age_seconds,
         path="/",
     )
     return response

@@ -1,37 +1,71 @@
 services:
   db:
-    image: mysql:8
+    image: mysql:8.0
+    restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: rootpassword
-      MYSQL_DATABASE: saas_dashboard
-      MYSQL_USER: saas_user
-      MYSQL_PASSWORD: saas_password
-    ports:
-      - "3306:3306"  # Only for local dev
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?Error: MYSQL_ROOT_PASSWORD must be set in .env}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-saas_dashboard}
+      MYSQL_USER: ${MYSQL_USER:-saas_user}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:?Error: MYSQL_PASSWORD must be set in .env}
     volumes:
       - mysql_data:/var/lib/mysql
+    networks:
+      - backend
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -u root -p$${MYSQL_ROOT_PASSWORD} || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 30s
 
   app:
-    build: .
-    ports:
-      - "8000:8000"
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
     environment:
-      DATABASE_URL: mysql+aiomysql://saas_user:saas_password@db:3306/saas_dashboard
-      SECRET_KEY: ${SECRET_KEY:-change-me-in-production}
-      CSRF_SECRET: ${CSRF_SECRET:-csrf-change-me}
+      DATABASE_URL: mysql+aiomysql://${MYSQL_USER:-saas_user}:${MYSQL_PASSWORD}@db:3306/${MYSQL_DATABASE:-saas_dashboard}
+      SECRET_KEY: ${SECRET_KEY:?Error: SECRET_KEY must be set in .env}
+      CSRF_SECRET: ${CSRF_SECRET:?Error: CSRF_SECRET must be set in .env}
+      COOKIE_SECURE: ${COOKIE_SECURE:-false}
+      DEBUG: ${DEBUG:-false}
+      APP_NAME: ${APP_NAME:-SaaS Admin Dashboard}
+      UVICORN_WORKERS: ${UVICORN_WORKERS:-2}
     depends_on:
       db:
         condition: service_healthy
+    networks:
+      - backend
+      - frontend
     healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health')"]
-      interval: 30s
-      timeout: 10s
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/health"]
+      interval: 20s
+      timeout: 5s
       retries: 3
+      start_period: 15s
+
+  nginx:
+    image: nginx:alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - certbot_www:/var/www/certbot:ro
+      - certbot_certs:/etc/letsencrypt:ro
+    depends_on:
+      app:
+        condition: service_healthy
+    networks:
+      - frontend
+
+networks:
+  backend:
+    internal: true
+  frontend:
 
 volumes:
   mysql_data:
+  certbot_www:
+  certbot_certs:
