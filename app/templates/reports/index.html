@@ -1,0 +1,156 @@
+{% extends "base.html" %}
+
+{% block title %}Export Reports{% endblock %}
+{% block active_nav %}reports{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="/dashboard">Dashboard</a></li>
+<li class="breadcrumb-item active" aria-current="page">Reports</li>
+{% endblock %}
+
+{% block content %}
+<div class="page-header mb-4">
+  <h1 class="page-title h3">Export Reports</h1>
+  <p class="page-subtitle text-muted">Generate and download CSV reports for administrative compliance, analytics, and record keeping.</p>
+</div>
+
+<div class="row g-4">
+  <!-- Users Report Card -->
+  <div class="col-12 col-md-6">
+    <div class="card h-100 shadow-sm border-0">
+      <div class="card-body p-4 d-flex flex-column justify-content-between">
+        <div>
+          <div class="d-flex align-items-center mb-3">
+            <div class="avatar-circle bg-primary me-3" style="width: 48px; height: 48px; font-size: 1.25rem;">
+              <i class="bi bi-people text-white"></i>
+            </div>
+            <div>
+              <h5 class="card-title fw-bold text-dark mb-1">Users Directory Export</h5>
+              <span class="badge bg-primary-subtle text-primary border border-primary-subtle">CSV Format</span>
+            </div>
+          </div>
+          <p class="text-muted small mb-4">
+            Exports complete user dataset including full names, registered emails, assigned roles (Admin, Manager, Staff), active account status, and registration timestamps.
+          </p>
+
+          <!-- User Filters -->
+          <div class="bg-light p-3 rounded mb-4">
+            <h6 class="fw-semibold small text-uppercase text-muted mb-2">Export Filters</h6>
+            <div class="row g-2">
+              <div class="col-6">
+                <label for="userRoleFilter" class="form-label small">Role Filter</label>
+                <select id="userRoleFilter" class="form-select form-select-sm">
+                  <option value="">All Roles</option>
+                  <option value="admin">Admin</option>
+                  <option value="manager">Manager</option>
+                  <option value="staff">Staff</option>
+                </select>
+              </div>
+              <div class="col-6">
+                <label for="userStatusFilter" class="form-label small">Status</label>
+                <select id="userStatusFilter" class="form-select form-select-sm">
+                  <option value="">All Statuses</option>
+                  <option value="active">Active</option>
+                  <option value="inactive">Inactive</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <a href="/api/reports/export/users" id="exportUsersBtn" class="btn btn-primary w-100 py-2 d-flex align-items-center justify-content-center">
+            <i class="bi bi-download me-2"></i> Export Users CSV
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Products Report Card -->
+  <div class="col-12 col-md-6">
+    <div class="card h-100 shadow-sm border-0">
+      <div class="card-body p-4 d-flex flex-column justify-content-between">
+        <div>
+          <div class="d-flex align-items-center mb-3">
+            <div class="avatar-circle bg-info me-3" style="width: 48px; height: 48px; font-size: 1.25rem;">
+              <i class="bi bi-box-seam text-white"></i>
+            </div>
+            <div>
+              <h5 class="card-title fw-bold text-dark mb-1">Products & Inventory Export</h5>
+              <span class="badge bg-info-subtle text-info border border-info-subtle">CSV Format</span>
+            </div>
+          </div>
+          <p class="text-muted small mb-4">
+            Exports inventory catalog data containing product SKUs, titles, descriptions, pricing, real-time stock levels, categorization, and active sales status.
+          </p>
+
+          <!-- Product Filters -->
+          <div class="bg-light p-3 rounded mb-4">
+            <h6 class="fw-semibold small text-uppercase text-muted mb-2">Export Filters</h6>
+            <div class="row g-2">
+              <div class="col-6">
+                <label for="productStatusFilter" class="form-label small">Status</label>
+                <select id="productStatusFilter" class="form-select form-select-sm">
+                  <option value="">All Statuses</option>
+                  <option value="active">Active</option>
+                  <option value="inactive">Inactive</option>
+                </select>
+              </div>
+              <div class="col-6">
+                <label for="productStockFilter" class="form-label small">Stock Level</label>
+                <select id="productStockFilter" class="form-select form-select-sm">
+                  <option value="">All Stock</option>
+                  <option value="low">Low Stock (&le; 10)</option>
+                  <option value="out">Out of Stock (0)</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <a href="/api/reports/export/products" id="exportProductsBtn" class="btn btn-info text-white w-100 py-2 d-flex align-items-center justify-content-center">
+            <i class="bi bi-download me-2"></i> Export Products CSV
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block page_js %}
+<script>
+  // Dynamically update export CSV download URLs when filter parameters change
+  document.addEventListener('DOMContentLoaded', () => {
+    const userRole = document.getElementById('userRoleFilter');
+    const userStatus = document.getElementById('userStatusFilter');
+    const userBtn = document.getElementById('exportUsersBtn');
+
+    function updateUsersUrl() {
+      const params = new URLSearchParams();
+      if (userRole.value) params.set('role', userRole.value);
+      if (userStatus.value) params.set('status', userStatus.value);
+      userBtn.href = `/api/reports/export/users${params.toString() ? '?' + params.toString() : ''}`;
+    }
+
+    userRole?.addEventListener('change', updateUsersUrl);
+    userStatus?.addEventListener('change', updateUsersUrl);
+
+    const prodStatus = document.getElementById('productStatusFilter');
+    const prodStock = document.getElementById('productStockFilter');
+    const prodBtn = document.getElementById('exportProductsBtn');
+
+    function updateProductsUrl() {
+      const params = new URLSearchParams();
+      if (prodStatus.value) params.set('status', prodStatus.value);
+      if (prodStock.value) params.set('stock', prodStock.value);
+      prodBtn.href = `/api/reports/export/products${params.toString() ? '?' + params.toString() : ''}`;
+    }
+
+    prodStatus?.addEventListener('change', updateProductsUrl);
+    prodStock?.addEventListener('change', updateProductsUrl);
+  });
+</script>
+{% endblock %}

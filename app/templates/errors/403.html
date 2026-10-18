@@ -1,0 +1,68 @@
+{% if current_user %}
+  {% extends "base.html" %}
+
+  {% block title %}Access Denied (403){% endblock %}
+  {% block active_nav %}{% endblock %}
+
+  {% block breadcrumb %}
+  <li class="breadcrumb-item active" aria-current="page">403 Forbidden</li>
+  {% endblock %}
+
+  {% block content %}
+  <div class="row justify-content-center py-5">
+    <div class="col-12 col-md-8 col-lg-6 text-center">
+      <div class="mb-4">
+        <span class="display-1 fw-bold text-danger">403</span>
+        <div class="avatar-circle mx-auto mt-3 bg-danger-subtle text-danger" style="width: 72px; height: 72px; font-size: 2rem;">
+          <i class="bi bi-shield-lock-fill"></i>
+        </div>
+      </div>
+      <h2 class="fw-bold text-dark mb-2">Access Denied</h2>
+      <p class="text-muted mb-4 lead">
+        You do not have the necessary permissions or security clearance to view this resource.
+      </p>
+      <div class="d-flex justify-content-center gap-3">
+        <a href="/dashboard" class="btn btn-primary px-4">
+          <i class="bi bi-house-door me-1"></i> Return to Dashboard
+        </a>
+        <a href="javascript:history.back()" class="btn btn-outline-secondary px-4">
+          <i class="bi bi-arrow-left me-1"></i> Go Back
+        </a>
+      </div>
+    </div>
+  </div>
+  {% endblock %}
+
+{% else %}
+  <!DOCTYPE html>
+  <html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Access Denied (403) | SaaS Admin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="/static/css/style.css">
+  </head>
+  <body class="bg-light d-flex align-items-center justify-content-center" style="min-height: 100vh;">
+    <div class="card p-5 text-center shadow-lg border-0" style="max-width: 480px; border-radius: 1rem;">
+      <div class="mb-3">
+        <div class="avatar-circle mx-auto bg-danger text-white mb-3" style="width: 64px; height: 64px; font-size: 1.75rem;">
+          <i class="bi bi-shield-x"></i>
+        </div>
+        <h1 class="display-4 fw-bold text-danger mb-0">403</h1>
+      </div>
+      <h3 class="fw-bold text-dark mb-2">Access Denied</h3>
+      <p class="text-muted mb-4">
+        You don't have permission to access this page or endpoint.
+      </p>
+      <div>
+        <a href="/login" class="btn btn-primary px-4">
+          <i class="bi bi-box-arrow-in-right me-1"></i> Sign In to Proceed
+        </a>
+      </div>
+    </div>
+  </body>
+  </html>
+{% endif %}

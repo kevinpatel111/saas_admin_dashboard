@@ -1,0 +1,37 @@
+services:
+  db:
+    image: mysql:8
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: saas_dashboard
+      MYSQL_USER: saas_user
+      MYSQL_PASSWORD: saas_password
+    ports:
+      - "3306:3306"  # Only for local dev
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: mysql+aiomysql://saas_user:saas_password@db:3306/saas_dashboard
+      SECRET_KEY: ${SECRET_KEY:-change-me-in-production}
+      CSRF_SECRET: ${CSRF_SECRET:-csrf-change-me}
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  mysql_data:
